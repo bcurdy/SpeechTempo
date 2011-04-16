@@ -2,6 +2,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:orientation="vertical" android:layout_width="fill_parent"
 	android:layout_height="fill_parent">
-    <ImageView android:layout_width="wrap_content" android:id="@+id/imageView1"
-	android:src="@drawable/recording_button" android:layout_gravity="center" android:layout_height="fill_parent"></ImageView>
+	<ImageButton android:layout_width="wrap_content"
+		android:layout_gravity="center" android:layout_height="wrap_content"
+		android:src="@drawable/recording_button" android:id="@+id/imageButton1"></ImageButton>
+	<View android:id="@+id/view1" android:layout_width="wrap_content"
+		android:layout_height="wrap_content"></View>
 </LinearLayout>
