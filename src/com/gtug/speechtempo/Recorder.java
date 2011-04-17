@@ -1,5 +1,8 @@
 package com.gtug.speechtempo;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -36,6 +39,7 @@ public class Recorder extends Activity implements OnClickListener {
 	private AudioTrack audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
 			frequency, channelConfiguration, audioEncoding, playBufferSize,
 			AudioTrack.MODE_STREAM);
+	
 	//Layout
 	ImageButton recordButton;
 	Visualizer mVisualizer;
@@ -77,6 +81,8 @@ public class Recorder extends Activity implements OnClickListener {
 					int bufferReadResult = audioRecord
 							.read(buffer, 0, recordBufferSize);
 					audioTrack.write(buffer, 0, bufferReadResult);
+					
+					//for(int i = 0; i<buffer.length; i++)Log.e("BUFFER", ""+buffer[i]);
 				}
 			}
 		});
@@ -102,13 +108,16 @@ public class Recorder extends Activity implements OnClickListener {
 				new Visualizer.OnDataCaptureListener() {
 					public void onWaveFormDataCapture(Visualizer visualizer,
 							byte[] bytes, int samplingRate) {
-						mVisualizerView.updateVisualizer(bytes);
+						
 					}
 
 					public void onFftDataCapture(Visualizer visualizer,
 							byte[] bytes, int samplingRate) {
+				
+						mVisualizerView.updateVisualizer(bytes);
+					
 					}
-				}, Visualizer.getMaxCaptureRate() / 2, true, false);
+				}, Visualizer.getMaxCaptureRate() / 2, false, true);
 	}
 
 }
@@ -118,6 +127,8 @@ public class Recorder extends Activity implements OnClickListener {
  * {@link Visualizer.OnDataCaptureListener#onWaveFormDataCapture }
  */
 class VisualizerView extends View {
+	ArrayList<byte[]> savewave;
+	//int[][] savewave = new int[100][128];
 	
 	public VisualizerView(Context context, AttributeSet attrs) {   
 	    super(context, attrs);  
@@ -132,10 +143,11 @@ class VisualizerView extends View {
 
 	private void init() {
 		mBytes = null;
-
+		savewave = new ArrayList<byte[]>();
 		mForePaint.setStrokeWidth(1f);
 		mForePaint.setAntiAlias(true);
-		mForePaint.setColor(Color.rgb(0, 128, 255));
+		//mForePaint.setColor(Color.rgb(0, 128, 255));
+		this.setBackgroundColor(Color.WHITE);
 	}
 
 	public void updateVisualizer(byte[] bytes) {
@@ -150,23 +162,37 @@ class VisualizerView extends View {
 		if (mBytes == null) {
 			return;
 		}
-
-		if (mPoints == null || mPoints.length < mBytes.length * 4) {
-			mPoints = new float[mBytes.length * 4];
-		}
-
+		savewave.add(mBytes);
+	
 		mRect.set(0, 0, getWidth(), getHeight());
 
-		for (int i = 0; i < mBytes.length - 1; i++) {
-			mPoints[i * 4] = mRect.width() * i / (mBytes.length - 1);
-			mPoints[i * 4 + 1] = mRect.height() / 2
-					+ ((byte) (mBytes[i] + 128)) * (mRect.height() / 2) / 128;
-			mPoints[i * 4 + 2] = mRect.width() * (i + 1) / (mBytes.length - 1);
-			mPoints[i * 4 + 3] = mRect.height() / 2
-					+ ((byte) (mBytes[i + 1] + 128)) * (mRect.height() / 2)
-					/ 128;
-		}
+		
+		//for (int i = 0; i < 100; i++) {
+			//mPoints[i * 4] = mRect.width() * i / 100;//x1
+			//mPoints[i * 4 + 1] = mRect.height() / 2 + mBytes[i]*(mRect.height()/2)/128;//y1
+			//mPoints[i * 4 + 2] = mRect.width() * (i + 1) / 100;//x2
+			//mPoints[i * 4 + 3] = mRect.height() / 2+ mBytes[i+1]*(mRect.height()/2)/128;;
+		//}
+		//canvas.drawLines(mPoints, mForePaint);
 
-		canvas.drawLines(mPoints, mForePaint);
+		
+		//for (int i = 0; i < 100; i++) {
+		//	canvas.drawLine(mRect.width() * i / 100, 
+		//			mRect.height() / 2,
+		//			mRect.width() * i / 100, 
+		//			mRect.height() / 2 + mBytes[i]*(mRect.height()/2)/128, 
+		//			mForePaint);
+		//}
+		for(int i = 0; i < savewave.size(); i++){
+			byte[] drawline = savewave.get(i);
+			for(int j = 0 ; j<drawline.length; j++){
+				int colorvalue = 255-Math.abs(drawline[j])*20;
+				if(colorvalue<0)colorvalue = 0;
+				mForePaint.setColor(Color.rgb(colorvalue, colorvalue, colorvalue));
+				canvas.drawPoint(getWidth()-savewave.size()+i, getHeight()-j, mForePaint); //x: max y: max
+			}
+					
+		}
+		
 	}
 }
